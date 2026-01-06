@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="cs">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rezervační Systém</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <div class="container">
+        <nav class="sidebar">
+            <h2>Učitelé</h2>
+            <ul id="teacher-list">
+                <!-- Javascript will populate this -->
+                <li data-teacher="Mrnuštík" class="active">Mrnuštík</li>
+                <li data-teacher="Svider">Svider</li>
+                <li data-teacher="John">John</li>
+            </ul>
+        </nav>
+        <main class="content">
+            <h1 id="current-teacher-name">Rezervace: Mrnuštík</h1>
+            <div class="reservation-table">
+                <div class="header-row">
+                    <div class="time-col">Čas</div>
+                    <div class="name-col">Jméno Studenta</div>
+                    <div class="action-col">Akce</div>
+                </div>
+                <div id="slots-container">
+                    <!-- Javascript will populate slots -->
+                </div>
+            </div>
+        </main>
+    </div>
+    <script src="app.js"></script>
+</body>
+
+</html>

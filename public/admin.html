@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="cs">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Administrace</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .admin-container {
+            max-width: 600px;
+            margin: 50px auto;
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+
+        .teacher-item {
+            display: flex;
+            align-items: center;
+            border-bottom: 1px solid #eee;
+            padding: 10px 0;
+            gap: 10px;
+        }
+
+        .teacher-item input {
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+
+        .btn {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .btn-green {
+            background-color: #4caf50;
+        }
+
+        .btn-red {
+            background-color: #f44336;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="login-screen" class="admin-container">
+        <h2>Přihlášení</h2>
+        <div class="form-group">
+            <label>Heslo</label>
+            <input type="password" id="admin-password">
+        </div>
+        <button class="btn" onclick="login()">Přihlásit</button>
+    </div>
+
+    <div id="dashboard-screen" class="admin-container" style="display:none;">
+        <h2>Správa učitelů</h2>
+        <div id="teachers-list">
+            <!-- Populated by JS -->
+        </div>
+        <button class="btn btn-green" onclick="addTeacher()" style="margin-top: 15px;">+ Přidat učitele</button>
+        <div style="margin-top: 30px; border-top: 1px solid #eee; padding-top: 20px;">
+            <button class="btn" onclick="saveSettings()">Uložit změny</button>
+            <button class="btn btn-red" onclick="logout()">Odhlásit</button>
+        </div>
+    </div>
+
+    <script>
+        let sessionToken = null;
+        let teachers = [];
+
+        async function login() {
+            const password = document.getElementById('admin-password').value;
+            const res = await fetch('/api/admin/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ password })
+            });
+            const data = await res.json();
+            if (data.success) {
+                sessionToken = data.token;
+                document.getElementById('login-screen').style.display = 'none';
+                document.getElementById('dashboard-screen').style.display = 'block';
+                loadConfig();
+            } else {
+                alert('Špatné heslo');
+            }
+        }
+
+        async function loadConfig() {
+            const res = await fetch('/api/config');
+            const data = await res.json();
+            teachers = data.teachers;
+            renderTeachers();
+        }
+
+        function renderTeachers() {
+            const list = document.getElementById('teachers-list');
+            list.innerHTML = '';
+            teachers.forEach((t, index) => {
+                const row = document.createElement('div');
+                row.className = 'teacher-item';
+                row.innerHTML = `
+                    <input type="text" placeholder="Jméno" value="${t.name}" onchange="updateTeacher(${index}, 'name', this.value)">
+                    <input type="number" placeholder="Minuty" value="${t.interval}" style="width: 70px" onchange="updateTeacher(${index}, 'interval', this.value)">
+                    <button class="btn btn-red" onclick="removeTeacher(${index})">X</button>
+                `;
+                list.appendChild(row);
+            });
+        }
+
+        function updateTeacher(index, field, value) {
+            if (field === 'interval') value = parseInt(value);
+            teachers[index][field] = value;
+        }
+
+        function addTeacher() {
+            teachers.push({ id: 't' + Date.now(), name: 'Nový Učitel', interval: 10 });
+            renderTeachers();
+        }
+
+        function removeTeacher(index) {
+            if (confirm('Opravdu smazat?')) {
+                teachers.splice(index, 1);
+                renderTeachers();
+            }
+        }
+
+        async function saveSettings() {
+            const res = await fetch('/api/admin/settings', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ token: sessionToken, teachers })
+            });
+            if (res.ok) {
+                alert('Nastavení uloženo');
+            } else {
+                alert('Chyba ukládání');
+            }
+        }
+
+        function logout() {
+            location.reload();
+        }
+    </script>
+</body>
+
+</html>

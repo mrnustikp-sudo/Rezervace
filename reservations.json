@@ -1,0 +1,50 @@
+{
+  "settings": {
+    "teachers": [
+      {
+        "id": "t1",
+        "name": "Mrnuštík",
+        "interval": 10
+      },
+      {
+        "id": "t2",
+        "name": "Svider",
+        "interval": 10
+      },
+      {
+        "id": "t1767691035449",
+        "name": "Zkušební Jan ",
+        "interval": 5
+      },
+      {
+        "id": "t1767691049960",
+        "name": "Testovací Josef ",
+        "interval": 15
+      }
+    ],
+    "adminPassword": "Holeckova10"
+  },
+  "reservations": {
+    "Mrnuštík": {
+      "16:00": {
+        "name": "Honza",
+        "id": "itfxj",
+        "token": "id59ieasjlmk2f1dfs"
+      },
+      "16:10": {
+        "name": "jan",
+        "id": "q90xpa",
+        "token": "9k2wh7asotlmk2f641p"
+      },
+      "16:30": {
+        "name": "Petr",
+        "id": "go17se",
+        "token": "a3t0jt2w0kwmk2gbadi"
+      }
+    },
+    "Svider": {},
+    "John": {},
+    "Zkušební Jan ": {},
+    "Testovací Josef ": {}
+  }
+}
