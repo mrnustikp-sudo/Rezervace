@@ -12,13 +12,16 @@ app.use(express.static(path.join(__dirname, 'public')));
 // Get public config (teachers, intervals)
 app.get('/api/config', async (req, res) => {
     const data = await db.getData();
-    // Only Expose necessary info
+    // Check storage mode
+    const storageMode = process.env.GOOGLE_SHEET_ID ? 'Google Sheets' : 'Local File';
+
     const publicSettings = {
         teachers: data.settings.teachers.map(t => ({
             id: t.id,
             name: t.name,
             interval: t.interval
-        }))
+        })),
+        storageMode: storageMode
     };
     res.json(publicSettings);
 });
@@ -132,6 +135,25 @@ app.post('/api/admin/settings', async (req, res) => {
 
     await db.saveData(data);
     res.json({ success: true });
+});
+
+app.post('/api/admin/delete-reservation', async (req, res) => {
+    const { token, teacher, time } = req.body;
+    if (token !== 'admin-session-ok') return res.status(401).json({ error: 'Unauthorized' });
+
+    const data = await db.getData();
+
+    // Ensure structure
+    if (!data.reservations) data.reservations = {};
+    if (!data.reservations[teacher]) data.reservations[teacher] = {};
+
+    if (data.reservations[teacher][time]) {
+        delete data.reservations[teacher][time];
+        await db.saveData(data);
+        res.json({ success: true });
+    } else {
+        res.status(404).json({ error: 'Rezervace nenalezena (již smazána?)' });
+    }
 });
 
 app.listen(PORT, () => {
