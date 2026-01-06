@@ -132,18 +132,27 @@ app.post('/api/admin/settings', async (req, res) => {
     const { token, teachers } = req.body;
     if (token !== 'admin-session-ok') return res.status(401).json({ error: 'Unauthorized' });
 
-    const data = await db.getData();
-    data.settings.teachers = teachers;
+    try {
+        const data = await db.getData();
+        // Init structure if missing
+        if (!data.settings) data.settings = {};
+        if (!data.reservations) data.reservations = {};
 
-    // Ensure reservation buckets exist for new teachers
-    teachers.forEach(t => {
-        if (!data.reservations[t.name]) {
-            data.reservations[t.name] = {};
-        }
-    });
+        data.settings.teachers = teachers;
 
-    await db.saveData(data);
-    res.json({ success: true });
+        // Ensure reservation buckets exist for new teachers
+        teachers.forEach(t => {
+            if (!data.reservations[t.name]) {
+                data.reservations[t.name] = {};
+            }
+        });
+
+        await db.saveData(data);
+        res.json({ success: true });
+    } catch (e) {
+        console.error('Settings save error:', e);
+        res.status(500).json({ error: 'Chyba zápisu: ' + e.message });
+    }
 });
 
 app.post('/api/admin/delete-reservation', async (req, res) => {
