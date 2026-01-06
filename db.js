@@ -57,11 +57,12 @@ async function saveData(data) {
 
 // ... (keep readFromSheets/writeToSheets/file impl same) ...
 
-getData,
+module.exports = {
+    getData,
     saveData,
     isConnected: () => !!doc,
-        getConnectionError: () => connectionError,
-            getSheetTitle: () => doc ? doc.title : null
+    getConnectionError: () => connectionError,
+    getSheetTitle: () => doc ? doc.title : null
 };
 
 function readFromFile() {
