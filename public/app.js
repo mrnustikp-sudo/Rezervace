@@ -54,6 +54,7 @@ async function init() {
     // await fetchReservations(); // Only fetch when teacher is selected
 
     // Add placeholder message
+    currentTeacherNameHeader.textContent = 'Výběr učitele';
     const container = document.getElementById('slots-container');
     container.innerHTML = '<p style="text-align:center; padding: 20px;">Prosím vyberte učitele ze seznamu vlevo.</p>';
 }

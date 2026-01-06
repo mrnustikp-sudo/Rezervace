@@ -272,12 +272,25 @@
                 const row = document.createElement('div');
                 row.className = 'teacher-item';
                 row.innerHTML = `
+                    <div style="display:flex; flex-direction:column; gap:2px;">
+                        <button class="btn" style="padding:2px 5px; font-size:10px" onclick="moveTeacher(${index}, -1)" ${index === 0 ? 'disabled' : ''}>▲</button>
+                        <button class="btn" style="padding:2px 5px; font-size:10px" onclick="moveTeacher(${index}, 1)" ${index === teachers.length - 1 ? 'disabled' : ''}>▼</button>
+                    </div>
                     <input type="text" placeholder="Jméno" value="${t.name}" onchange="updateTeacher(${index}, 'name', this.value)">
                     <input type="number" placeholder="Minuty" value="${t.interval}" style="width: 70px" onchange="updateTeacher(${index}, 'interval', this.value)">
                     <button class="btn btn-red" onclick="removeTeacher(${index})">X</button>
                 `;
                 list.appendChild(row);
             });
+        }
+
+        function moveTeacher(index, direction) {
+            const newIndex = index + direction;
+            if (newIndex < 0 || newIndex >= teachers.length) return;
+            const temp = teachers[index];
+            teachers[index] = teachers[newIndex];
+            teachers[newIndex] = temp;
+            renderTeachers();
         }
 
         function updateTeacher(index, field, value) {
