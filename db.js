@@ -16,16 +16,18 @@ let doc = null;
 async function initSheets() {
     if (!USE_SHEETS) return;
     try {
-        doc = new GoogleSpreadsheet(process.env.GOOGLE_SHEET_ID);
-        await doc.useServiceAccountAuth({
+        const newDoc = new GoogleSpreadsheet(process.env.GOOGLE_SHEET_ID);
+        await newDoc.useServiceAccountAuth({
             client_email: process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL,
             private_key: process.env.GOOGLE_PRIVATE_KEY.replace(/\\n/g, '\n'),
         });
-        await doc.loadInfo();
-        console.log('Connected to Google Sheet:', doc.title);
+        await newDoc.loadInfo();
+        console.log('Connected to Google Sheet:', newDoc.title);
+        doc = newDoc; // Only assign after success!
     } catch (e) {
         console.error('Google Sheets connection failed:', e.message);
         console.log('Falling back to local file mode.');
+        doc = null; // Ensure fallback
     }
 }
 
