@@ -257,15 +257,21 @@
         }
 
         async function saveSettings() {
-            const res = await fetch('/api/admin/settings', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ token: sessionToken, teachers })
-            });
-            if (res.ok) {
-                alert('Nastavení uloženo');
-            } else {
-                alert('Chyba ukládání');
+            try {
+                const res = await fetch('/api/admin/settings', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ token: sessionToken, teachers })
+                });
+
+                if (res.ok) {
+                    alert('Nastavení uloženo');
+                } else {
+                    const data = await res.json();
+                    alert('Chyba ukládání: ' + (data.error || 'Neznámá chyba'));
+                }
+            } catch (e) {
+                alert('Chyba komunikace: ' + e.message);
             }
         }
 
