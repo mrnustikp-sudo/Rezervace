@@ -40,13 +40,22 @@ function closeSidebar() {
 async function init() {
     loadTokens();
     await fetchConfig();
-    if (teachers.length > 0) {
-        // Set default
-        switchTeacher(teachers[0].name);
+
+    // Open sidebar by default on load
+    const sidebar = document.getElementById('sidebar');
+    const overlay = document.getElementById('overlay');
+    if (sidebar && overlay) {
+        sidebar.classList.add('active');
+        overlay.classList.add('active');
     }
+
     setupTeacherList();
-    await fetchReservations();
-    renderSlots();
+    // Do NOT automatically switch to first teacher anymore
+    // await fetchReservations(); // Only fetch when teacher is selected
+
+    // Add placeholder message
+    const container = document.getElementById('slots-container');
+    container.innerHTML = '<p style="text-align:center; padding: 20px;">Prosím vyberte učitele ze seznamu vlevo.</p>';
 }
 
 async function fetchConfig() {
