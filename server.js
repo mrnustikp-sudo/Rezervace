@@ -16,7 +16,7 @@ app.get('/api/config', async (req, res) => {
     let storageMode = 'Local File';
     if (process.env.GOOGLE_SHEET_ID) {
         if (db.isConnected()) {
-            storageMode = 'Google Sheets (Connected)';
+            storageMode = `Google Sheets (Connected: "${db.getSheetTitle()}")`;
         } else {
             const err = db.getConnectionError() || 'Unknown Error';
             storageMode = `Google Sheets ERROR: ${err}`;

@@ -57,11 +57,11 @@ async function saveData(data) {
 
 // ... (keep readFromSheets/writeToSheets/file impl same) ...
 
-module.exports = {
-    getData,
+getData,
     saveData,
     isConnected: () => !!doc,
-    getConnectionError: () => connectionError
+        getConnectionError: () => connectionError,
+            getSheetTitle: () => doc ? doc.title : null
 };
 
 function readFromFile() {
@@ -118,7 +118,4 @@ async function writeToSheets(data) {
     await sheet.saveUpdatedCells();
 }
 
-getData,
-    saveData,
-    isConnected: () => !!doc
-};
+
