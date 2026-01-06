@@ -22,29 +22,41 @@ body {
     width: 100%;
 }
 
-/* Sidebar */
+/* Sidebar drawer logic */
 .sidebar {
-    width: 250px;
+    width: 280px;
     background-color: var(--sidebar-color);
     color: var(--white);
     padding: 20px;
     display: flex;
     flex-direction: column;
+    height: 100vh;
+    box-sizing: border-box;
+    transition: transform 0.3s ease;
+    z-index: 1000;
+}
+
+.sidebar.hidden {
+    transform: translateX(-100%);
+    position: absolute;
 }
 
 .sidebar h2 {
     margin-top: 0;
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
     padding-bottom: 15px;
+    font-size: 1.5rem;
 }
 
 .sidebar ul {
     list-style: none;
     padding: 0;
+    overflow-y: auto;
+    flex-grow: 1;
 }
 
 .sidebar li {
-    padding: 15px 10px;
+    padding: 15px 12px;
     cursor: pointer;
     border-bottom: 1px solid rgba(255, 255, 255, 0.05);
     transition: background 0.2s;
@@ -59,11 +71,75 @@ body {
     font-weight: bold;
 }
 
-/* Content */
+/* Menu Toggle Button */
+.menu-toggle {
+    position: fixed;
+    top: 15px;
+    left: 15px;
+    z-index: 1001;
+    background: var(--primary-color);
+    color: white;
+    border: none;
+    width: 45px;
+    height: 45px;
+    border-radius: 8px;
+    font-size: 24px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* Desktop behavior: Sidebar visible by default, but toggleable */
+@media (min-width: 769px) {
+    .sidebar.hidden {
+        width: 0;
+        padding: 0;
+        overflow: hidden;
+    }
+}
+
+/* Mobile behavior: Sidebar is a floating drawer */
+@media (max-width: 768px) {
+    .sidebar {
+        position: fixed;
+        left: 0;
+        top: 0;
+        transform: translateX(-100%);
+    }
+
+    .sidebar.active {
+        transform: translateX(0);
+    }
+
+    .sidebar.hidden {
+        transform: translateX(-100%);
+    }
+
+    .overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 999;
+    }
+
+    .overlay.active {
+        display: block;
+    }
+}
+
+/* Content adjustment */
 .content {
     flex: 1;
-    padding: 40px;
+    padding: 60px 40px 40px 40px;
+    /* More top padding for the menu button */
     overflow-y: auto;
+    transition: margin-left 0.3s ease;
 }
 
 h1 {
@@ -71,15 +147,17 @@ h1 {
     margin-bottom: 30px;
 }
 
-/* Reservation Table */
+/* Reservation Table Responsive */
 .reservation-table {
     background: var(--white);
     border-radius: 8px;
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
     overflow: hidden;
-    max-width: 800px;
+    width: 100%;
+    max-width: 1000px;
 }
 
+/* Rest of table styles stay same - keeping them readable */
 .header-row {
     display: flex;
     background-color: var(--primary-color);
@@ -142,7 +220,43 @@ h1 {
     background-color: #303f9f;
 }
 
-/* Print Styles */
+/* Mobile specific table tweaks */
+@media (max-width: 600px) {
+    .content {
+        padding: 70px 10px 20px 10px;
+    }
+
+    .slot-row {
+        flex-direction: column;
+        align-items: stretch;
+        padding: 15px 10px;
+    }
+
+    .time-col {
+        width: 100%;
+        margin-bottom: 5px;
+        font-size: 1.1rem;
+    }
+
+    .action-col {
+        width: 100%;
+        text-align: left;
+        margin-top: 10px;
+    }
+
+    .save-btn {
+        width: 100%;
+        padding: 12px;
+        font-size: 1rem;
+    }
+
+    .header-row {
+        display: none;
+        /* Header row is confusing on stacked rows */
+    }
+}
+
+/* Keeping Print Styles */
 @media print {
     body {
         background-color: white;
@@ -150,7 +264,10 @@ h1 {
         display: block;
     }
 
-    .sidebar {
+    .menu-toggle,
+    .sidebar,
+    .sidebar.active,
+    .overlay {
         display: none !important;
     }
 

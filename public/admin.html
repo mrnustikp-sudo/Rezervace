@@ -80,6 +80,43 @@
             border-bottom: 3px solid #4caf50;
             font-weight: bold;
         }
+
+        @media (max-width: 600px) {
+            .admin-container {
+                margin: 10px auto;
+                padding: 15px;
+                width: 95%;
+            }
+
+            .teacher-item,
+            .res-item {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 5px;
+                padding: 15px 0;
+            }
+
+            .teacher-item input,
+            .res-item span {
+                width: 100% !important;
+                margin-bottom: 5px;
+            }
+
+            .res-item span {
+                text-align: left;
+                padding: 2px 0;
+            }
+
+            .tab-btn {
+                padding: 10px 10px;
+                font-size: 14px;
+            }
+
+            .btn {
+                width: 100%;
+                margin-bottom: 10px;
+            }
+        }
     </style>
 </head>
 
