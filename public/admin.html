@@ -8,7 +8,7 @@
     <link rel="stylesheet" href="style.css">
     <style>
         .admin-container {
-            max-width: 600px;
+            max-width: 800px;
             margin: 50px auto;
             background: white;
             padding: 30px;
@@ -33,7 +33,8 @@
             border-radius: 4px;
         }
 
-        .teacher-item {
+        .teacher-item,
+        .res-item {
             display: flex;
             align-items: center;
             border-bottom: 1px solid #eee;
@@ -41,10 +42,8 @@
             gap: 10px;
         }
 
-        .teacher-item input {
-            padding: 8px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
+        .res-item span {
+            flex: 1;
         }
 
         .btn {
@@ -63,6 +62,24 @@
         .btn-red {
             background-color: #f44336;
         }
+
+        .tabs {
+            border-bottom: 1px solid #ddd;
+            margin-bottom: 20px;
+        }
+
+        .tab-btn {
+            padding: 10px 20px;
+            cursor: pointer;
+            background: none;
+            border: none;
+            font-size: 16px;
+        }
+
+        .tab-btn.active {
+            border-bottom: 3px solid #4caf50;
+            font-weight: bold;
+        }
     </style>
 </head>
 
@@ -77,15 +94,29 @@
     </div>
 
     <div id="dashboard-screen" class="admin-container" style="display:none;">
-        <h2>Správa učitelů</h2>
-        <div id="teachers-list">
-            <!-- Populated by JS -->
+        <div class="tabs">
+            <button class="tab-btn active" onclick="showTab('teachers')">Učitelé</button>
+            <button class="tab-btn" onclick="showTab('reservations')">Rezervace</button>
         </div>
-        <button class="btn btn-green" onclick="addTeacher()" style="margin-top: 15px;">+ Přidat učitele</button>
-        <div style="margin-top: 30px; border-top: 1px solid #eee; padding-top: 20px;">
-            <button class="btn" onclick="saveSettings()">Uložit změny</button>
-            <button class="btn btn-red" onclick="logout()">Odhlásit</button>
+
+        <!-- TEACHERS TAB -->
+        <div id="tab-teachers">
+            <h2>Správa učitelů</h2>
+            <div id="teachers-list"></div>
+            <button class="btn btn-green" onclick="addTeacher()" style="margin-top: 15px;">+ Přidat učitele</button>
+            <div style="margin-top: 30px; border-top: 1px solid #eee; padding-top: 20px;">
+                <button class="btn" onclick="saveSettings()">Uložit nastavení</button>
+            </div>
         </div>
+
+        <!-- RESERVATIONS TAB -->
+        <div id="tab-reservations" style="display:none;">
+            <h2>Správa rezervací</h2>
+            <button class="btn" onclick="loadReservations()" style="margin-bottom: 10px;">Obnovit data</button>
+            <div id="reservations-list"></div>
+        </div>
+
+        <button class="btn btn-red" onclick="logout()" style="margin-top: 30px;">Odhlásit</button>
     </div>
 
     <script>
@@ -105,9 +136,18 @@
                 document.getElementById('login-screen').style.display = 'none';
                 document.getElementById('dashboard-screen').style.display = 'block';
                 loadConfig();
+                loadReservations();
             } else {
                 alert('Špatné heslo');
             }
+        }
+
+        function showTab(tab) {
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.querySelector(`button[onclick="showTab('${tab}')"]`).classList.add('active');
+
+            document.getElementById('tab-teachers').style.display = tab === 'teachers' ? 'block' : 'none';
+            document.getElementById('tab-reservations').style.display = tab === 'reservations' ? 'block' : 'none';
         }
 
         async function loadConfig() {
@@ -115,6 +155,49 @@
             const data = await res.json();
             teachers = data.teachers;
             renderTeachers();
+        }
+
+        async function loadReservations() {
+            const res = await fetch('/api/reservations');
+            const data = await res.json(); // { Teacher: { Time: {name, id} } }
+
+            const list = document.getElementById('reservations-list');
+            list.innerHTML = '';
+
+            Object.keys(data).forEach(teacher => {
+                Object.keys(data[teacher]).forEach(time => {
+                    const r = data[teacher][time];
+                    if (r) {
+                        const row = document.createElement('div');
+                        row.className = 'res-item';
+                        row.innerHTML = `
+                            <span style="font-weight:bold; width: 100px;">${teacher}</span>
+                            <span style="width: 60px;">${time}</span>
+                            <span>${r.name}</span>
+                            <button class="btn btn-red" onclick="deleteReservation('${teacher}', '${time}')">Smazat</button>
+                        `;
+                        list.appendChild(row);
+                    }
+                });
+            });
+
+            if (list.children.length === 0) list.innerHTML = '<p>Žádné aktivní rezervace.</p>';
+        }
+
+        async function deleteReservation(teacher, time) {
+            if (!confirm(`Opravdu smazat rezervaci ${teacher} v ${time}?`)) return;
+
+            const res = await fetch('/api/admin/delete-reservation', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ token: sessionToken, teacher, time })
+            });
+
+            if (res.ok) {
+                loadReservations();
+            } else {
+                alert('Chyba při mazání');
+            }
         }
 
         function renderTeachers() {
