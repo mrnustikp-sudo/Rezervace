@@ -129,20 +129,33 @@
 
         async function login() {
             const password = document.getElementById('admin-password').value;
-            const res = await fetch('/api/admin/login', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ password })
-            });
-            const data = await res.json();
-            if (data.success) {
-                sessionToken = data.token;
-                document.getElementById('login-screen').style.display = 'none';
-                document.getElementById('dashboard-screen').style.display = 'block';
-                loadConfig();
-                loadReservations();
-            } else {
-                alert('Špatné heslo');
+            try {
+                const res = await fetch('/api/admin/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ password })
+                });
+
+                // Handle non-JSON response (e.g. 500 HTML)
+                const contentType = res.headers.get("content-type");
+                let data;
+                if (contentType && contentType.indexOf("application/json") !== -1) {
+                    data = await res.json();
+                } else {
+                    throw new Error('Server returned non-JSON error (Check logs)');
+                }
+
+                if (data.success) {
+                    sessionToken = data.token;
+                    document.getElementById('login-screen').style.display = 'none';
+                    document.getElementById('dashboard-screen').style.display = 'block';
+                    loadConfig();
+                    loadReservations();
+                } else {
+                    alert('Chyba: ' + (data.error || 'Špatné heslo'));
+                }
+            } catch (e) {
+                alert('Chyba komunikace se serverem. Zkontrolujte logy na Renderu. ' + e.message);
             }
         }
 

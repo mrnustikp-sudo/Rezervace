@@ -78,19 +78,20 @@ function writeToFile(data) {
 // This effectively uses Sheets as a remote file system. Simple and works "at all costs".
 
 async function readFromSheets() {
-    const sheet = doc.sheetsByIndex[0];
-    await sheet.loadCells('A1:A1');
-    const cell = sheet.getCell(0, 0); // A1
-    const val = cell.value;
-
-    if (!val) {
-        return { settings: { teachers: [], adminPassword: 'admin' }, reservations: {} };
-    }
-
     try {
+        const sheet = doc.sheetsByIndex[0];
+        await sheet.loadCells('A1:A1');
+        const cell = sheet.getCell(0, 0); // A1
+        const val = cell.value;
+
+        if (!val) {
+            return { settings: { teachers: [], adminPassword: 'admin' }, reservations: {} };
+        }
+
         return JSON.parse(val);
     } catch (e) {
-        console.error('Failed to parse JSON from Sheet:', e);
+        console.error('Read from Sheet failed:', e);
+        // Return default so app stays alive even if sheet is broken/unshared
         return { settings: { teachers: [], adminPassword: 'admin' }, reservations: {} };
     }
 }

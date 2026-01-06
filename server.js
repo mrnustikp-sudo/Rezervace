@@ -111,11 +111,20 @@ app.post('/api/reserve', async (req, res) => {
 
 app.post('/api/admin/login', async (req, res) => {
     const { password } = req.body;
-    const data = await db.getData();
-    if (password === data.settings.adminPassword) {
-        res.json({ success: true, token: 'admin-session-ok' });
-    } else {
-        res.status(401).json({ error: 'Invalid password' });
+    try {
+        const data = await db.getData();
+        // Fallback if data is corrupted but db.getData didn't catch it
+        const savedPassword = (data.settings && data.settings.adminPassword) ? data.settings.adminPassword : 'admin';
+
+        if (password === savedPassword) {
+            res.json({ success: true, token: 'admin-session-ok' });
+        } else {
+            console.log(`Login failed. Expected: ${savedPassword}, Got: ${password}`);
+            res.status(401).json({ error: 'Invalid password' });
+        }
+    } catch (e) {
+        console.error('Login error:', e);
+        res.status(500).json({ error: 'Server error during login' });
     }
 });
 
