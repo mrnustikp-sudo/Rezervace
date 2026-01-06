@@ -11,7 +11,8 @@ const DATA_FILE = path.join(__dirname, 'reservations.json');
 // GOOGLE_PRIVATE_KEY
 const USE_SHEETS = !!process.env.GOOGLE_SHEET_ID;
 
-let doc = null;
+// Store last connection error for debugging
+let connectionError = null;
 
 async function initSheets() {
     if (!USE_SHEETS) return;
@@ -23,11 +24,13 @@ async function initSheets() {
         });
         await newDoc.loadInfo();
         console.log('Connected to Google Sheet:', newDoc.title);
-        doc = newDoc; // Only assign after success!
+        doc = newDoc;
+        connectionError = null;
     } catch (e) {
         console.error('Google Sheets connection failed:', e.message);
         console.log('Falling back to local file mode.');
-        doc = null; // Ensure fallback
+        doc = null;
+        connectionError = e.message; // Save error for admin UI
     }
 }
 
@@ -50,7 +53,16 @@ async function saveData(data) {
     return writeToFile(data);
 }
 
-// --- FILE IMPLEMENTATION ---
+// ... internal implementation ...
+
+// ... (keep readFromSheets/writeToSheets/file impl same) ...
+
+module.exports = {
+    getData,
+    saveData,
+    isConnected: () => !!doc,
+    getConnectionError: () => connectionError
+};
 
 function readFromFile() {
     if (!fs.existsSync(DATA_FILE)) {

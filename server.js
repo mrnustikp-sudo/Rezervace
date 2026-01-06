@@ -18,7 +18,8 @@ app.get('/api/config', async (req, res) => {
         if (db.isConnected()) {
             storageMode = 'Google Sheets (Connected)';
         } else {
-            storageMode = 'Google Sheets (ERROR - Falling back to local)';
+            const err = db.getConnectionError() || 'Unknown Error';
+            storageMode = `Google Sheets ERROR: ${err}`;
         }
     }
 

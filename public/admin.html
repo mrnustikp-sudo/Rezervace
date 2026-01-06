@@ -172,9 +172,13 @@
             const data = await res.json();
             teachers = data.teachers;
             if (data.storageMode) {
-                document.getElementById('storage-status').textContent = data.storageMode;
-                if (data.storageMode.includes('Google')) {
-                    document.getElementById('storage-status').style.color = 'green';
+                const el = document.getElementById('storage-status');
+                el.textContent = data.storageMode;
+                if (data.storageMode.includes('Connected')) {
+                    el.style.color = 'green';
+                } else if (data.storageMode.includes('ERROR')) {
+                    el.style.color = 'red';
+                    el.style.fontWeight = 'bold';
                 }
             }
             renderTeachers();
