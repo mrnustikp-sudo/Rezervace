@@ -12,8 +12,15 @@ app.use(express.static(path.join(__dirname, 'public')));
 // Get public config (teachers, intervals)
 app.get('/api/config', async (req, res) => {
     const data = await db.getData();
-    // Check storage mode
-    const storageMode = process.env.GOOGLE_SHEET_ID ? 'Google Sheets' : 'Local File';
+    // Check REAL storage mode
+    let storageMode = 'Local File';
+    if (process.env.GOOGLE_SHEET_ID) {
+        if (db.isConnected()) {
+            storageMode = 'Google Sheets (Connected)';
+        } else {
+            storageMode = 'Google Sheets (ERROR - Falling back to local)';
+        }
+    }
 
     const publicSettings = {
         teachers: data.settings.teachers.map(t => ({

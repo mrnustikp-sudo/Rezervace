@@ -106,7 +106,7 @@ async function writeToSheets(data) {
     await sheet.saveUpdatedCells();
 }
 
-module.exports = {
-    getData,
-    saveData
+getData,
+    saveData,
+    isConnected: () => !!doc
 };
