@@ -9,11 +9,19 @@
 </head>
 
 <body>
+    <div id="loading-overlay" class="loading-overlay" style="display:none;">
+        <div class="loader"></div>
+        <p>Načítám data ze serveru...</p>
+    </div>
     <button id="menu-toggle" class="menu-toggle" aria-label="Otevřít menu">☰</button>
     <div id="overlay" class="overlay"></div>
     <div class="container">
         <nav class="sidebar" id="sidebar">
-            <h2>Učitelé</h2>
+            <div
+                style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid rgba(255,255,255,0.1); padding-bottom:15px; margin-bottom:20px;">
+                <h2 style="margin:0; border:none; padding:0;">Učitelé</h2>
+                <button onclick="fetchReservations()" class="refresh-btn" title="Aktualizovat data">🔄</button>
+            </div>
             <ul id="teacher-list">
                 <!-- Javascript will populate this -->
                 <li data-teacher="Mrnuštík" class="active">Mrnuštík</li>

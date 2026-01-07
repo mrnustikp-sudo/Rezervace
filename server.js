@@ -9,6 +9,12 @@ const PORT = 3000;
 app.use(bodyParser.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
+// Prevent caching for API calls to ensure parents see the latest data
+app.use('/api', (req, res, next) => {
+    res.set('Cache-Control', 'no-store, no-cache, must-revalidate, private');
+    next();
+});
+
 // Get public config (teachers, intervals)
 app.get('/api/config', async (req, res) => {
     const data = await db.getData();

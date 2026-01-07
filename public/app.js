@@ -1,11 +1,30 @@
-let teachers = []; // Now fetched from server
-const startHour = 16;
-const endHour = 17; // ends at 17:50 (approx)
+// DOM Elements
+const teacherList = document.getElementById('teacher-list');
+const slotsContainer = document.getElementById('slots-container');
+const currentTeacherNameHeader = document.getElementById('current-teacher-name');
+const menuToggle = document.getElementById('menu-toggle');
+const sidebar = document.getElementById('sidebar');
+const overlay = document.getElementById('overlay');
 
-let currentTeacherName = ''; // Changed from currentTeacher to clarify it's a name or ID
+// Globals
+let teachers = [];
+const startHour = 16;
+const endHour = 17;
+let currentTeacherName = '';
 let currentTeacherObj = null;
 let reservations = {};
 let localTokens = {};
+
+// UI Helpers
+function showLoading() {
+    const overlay = document.getElementById('loading-overlay');
+    if (overlay) overlay.style.display = 'flex';
+}
+
+function hideLoading() {
+    const overlay = document.getElementById('loading-overlay');
+    if (overlay) overlay.style.display = 'none';
+}
 
 document.addEventListener('DOMContentLoaded', () => {
     init();
@@ -37,26 +56,36 @@ function closeSidebar() {
     if (overlay) overlay.classList.remove('active');
 }
 
+// Fetch initial config
 async function init() {
     loadTokens();
-    await fetchConfig();
+    showLoading(); // Show loading while waking up server
 
-    // Open sidebar by default on load
-    const sidebar = document.getElementById('sidebar');
-    const overlay = document.getElementById('overlay');
-    if (sidebar && overlay) {
-        sidebar.classList.add('active');
-        overlay.classList.add('active');
+    try {
+        await fetchConfig();
+
+        // Warm up: Pre-fetch all reservations immediately
+        await fetchReservations();
+
+        // Open sidebar by default on load
+        const sidebar = document.getElementById('sidebar');
+        const overlay = document.getElementById('overlay');
+        if (sidebar && overlay) {
+            sidebar.classList.add('active');
+            overlay.classList.add('active');
+        }
+
+        setupTeacherList();
+
+        // Add placeholder message
+        currentTeacherNameHeader.textContent = 'Výběr učitele';
+        const container = document.getElementById('slots-container');
+        container.innerHTML = '<p style="text-align:center; padding: 20px;">Prosím vyberte učitele ze seznamu vlevo.</p>';
+    } catch (e) {
+        console.error('Initialization error:', e);
+    } finally {
+        hideLoading();
     }
-
-    setupTeacherList();
-    // Do NOT automatically switch to first teacher anymore
-    // await fetchReservations(); // Only fetch when teacher is selected
-
-    // Add placeholder message
-    currentTeacherNameHeader.textContent = 'Výběr učitele';
-    const container = document.getElementById('slots-container');
-    container.innerHTML = '<p style="text-align:center; padding: 20px;">Prosím vyberte učitele ze seznamu vlevo.</p>';
 }
 
 async function fetchConfig() {
@@ -111,17 +140,26 @@ async function switchTeacher(name) {
     });
 
     closeSidebar();
-    await fetchReservations(); // Critical: Fetch latest data from server when switching
+    showLoading();
+    try {
+        await fetchReservations(); // Critical: Fetch latest data from server when switching
+    } finally {
+        hideLoading();
+    }
     renderSlots();
 }
 
 async function fetchReservations() {
+    showLoading();
     try {
         const response = await fetch('/api/reservations');
         reservations = await response.json();
         renderSlots();
     } catch (error) {
         console.error('Failed to fetch reservations:', error);
+        alert('Nepodařilo se načíst data. Zkuste to prosím znovu za chvíli.');
+    } finally {
+        hideLoading();
     }
 }
 
