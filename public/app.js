@@ -98,7 +98,7 @@ function setupTeacherList() {
     });
 }
 
-function switchTeacher(name) {
+async function switchTeacher(name) {
     currentTeacherName = name;
     currentTeacherObj = teachers.find(t => t.name === name);
 
@@ -111,6 +111,7 @@ function switchTeacher(name) {
     });
 
     closeSidebar();
+    await fetchReservations(); // Critical: Fetch latest data from server when switching
     renderSlots();
 }
 
@@ -204,6 +205,7 @@ function renderSlots() {
             input.className = 'name-input';
             input.value = studentName;
             input.placeholder = 'Volno';
+            input.maxLength = 50; // Requested limit
             nameCol.appendChild(input);
         }
 

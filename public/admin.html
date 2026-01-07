@@ -276,7 +276,7 @@
                         <button class="btn" style="padding:2px 5px; font-size:10px" onclick="moveTeacher(${index}, -1)" ${index === 0 ? 'disabled' : ''}>▲</button>
                         <button class="btn" style="padding:2px 5px; font-size:10px" onclick="moveTeacher(${index}, 1)" ${index === teachers.length - 1 ? 'disabled' : ''}>▼</button>
                     </div>
-                    <input type="text" placeholder="Jméno" value="${t.name}" onchange="updateTeacher(${index}, 'name', this.value)">
+                    <input type="text" placeholder="Jméno" value="${t.name}" maxlength="50" onchange="updateTeacher(${index}, 'name', this.value)">
                     <input type="number" placeholder="Minuty" value="${t.interval}" style="width: 70px" onchange="updateTeacher(${index}, 'interval', this.value)">
                     <button class="btn btn-red" onclick="removeTeacher(${index})">X</button>
                 `;
