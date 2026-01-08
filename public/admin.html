@@ -40,6 +40,60 @@
             border-bottom: 1px solid #eee;
             padding: 10px 0;
             gap: 10px;
+            background: white;
+            transition: background 0.2s;
+        }
+
+        .teacher-item:hover {
+            background: #f9f9f9;
+        }
+
+        .teacher-item.dragging {
+            opacity: 0.5;
+            background: #e1f5fe;
+            border: 2px dashed #03a9f4;
+        }
+
+        .teacher-item .drag-handle {
+            cursor: grab;
+            color: #ccc;
+            padding: 0 5px;
+            font-size: 20px;
+            user-select: none;
+        }
+
+        .teacher-item .drag-handle:active {
+            cursor: grabbing;
+        }
+
+        .res-group {
+            margin-bottom: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .res-group-header {
+            background: #f5f5f5;
+            padding: 10px 15px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: bold;
+        }
+
+        .res-group-header:hover {
+            background: #eee;
+        }
+
+        .res-group-content {
+            padding: 0 15px;
+            display: none;
+        }
+
+        .res-group.active .res-group-content {
+            display: block;
         }
 
         .res-item span {
@@ -53,15 +107,12 @@
             padding: 10px 15px;
             border-radius: 4px;
             cursor: pointer;
+            font-weight: 500;
         }
-
-        .btn-green {
-            background-color: #4caf50;
-        }
-
-        .btn-red {
-            background-color: #f44336;
-        }
+        /* ... previous styles ... */
+        .btn-green { background-color: #4caf50; }
+        .btn-red { background-color: #f44336; }
+        .btn-orange { background-color: #ff9800; }
 
         .tabs {
             border-bottom: 1px solid #ddd;
@@ -77,7 +128,7 @@
         }
 
         .tab-btn.active {
-            border-bottom: 3px solid #4caf50;
+            border-bottom: 3px solid var(--primary-color);
             font-weight: bold;
         }
 
@@ -132,8 +183,9 @@
 
     <div id="dashboard-screen" class="admin-container" style="display:none;">
         <div
-            style="background:#f0f0f0; padding:10px; margin-bottom:15px; border-radius:4px; font-size:12px; color:#555;">
-            Stav úložiště: <strong id="storage-status">Loading...</strong>
+            style="background:#f0f0f0; padding:10px; margin-bottom:15px; border-radius:4px; font-size:12px; color:#555; display:flex; justify-content:space-between; align-items:center;">
+            <span>Stav úložiště: <strong id="storage-status">Loading...</strong></span>
+            <button class="btn btn-red" onclick="logout()" style="padding: 5px 10px; font-size:11px;">Odhlásit</button>
         </div>
         <div class="tabs">
             <button class="tab-btn active" onclick="showTab('teachers')">Učitelé</button>
@@ -142,7 +194,10 @@
 
         <!-- TEACHERS TAB -->
         <div id="tab-teachers">
-            <h2>Správa učitelů</h2>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+                <h2 style="margin:0;">Správa učitelů</h2>
+                <span style="font-size:12px; color:#888;">💡 Učitele můžete řadit přetažením</span>
+            </div>
             <div id="teachers-list"></div>
             <button class="btn btn-green" onclick="addTeacher()" style="margin-top: 15px;">+ Přidat učitele</button>
             <div style="margin-top: 30px; border-top: 1px solid #eee; padding-top: 20px;">
@@ -152,12 +207,15 @@
 
         <!-- RESERVATIONS TAB -->
         <div id="tab-reservations" style="display:none;">
-            <h2>Správa rezervací</h2>
-            <button class="btn" onclick="loadReservations()" style="margin-bottom: 10px;">Obnovit data</button>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+                <h2 style="margin:0;">Správa rezervací</h2>
+                <div style="display:flex; gap:10px;">
+                    <button class="btn btn-orange" onclick="loadReservations()">Obnovit</button>
+                    <button class="btn btn-red" onclick="resetReservations()">Resetovat vše</button>
+                </div>
+            </div>
             <div id="reservations-list"></div>
         </div>
-
-        <button class="btn btn-red" onclick="logout()" style="margin-top: 30px;">Odhlásit</button>
     </div>
 
     <script>
@@ -173,13 +231,12 @@
                     body: JSON.stringify({ password })
                 });
 
-                // Handle non-JSON response (e.g. 500 HTML)
                 const contentType = res.headers.get("content-type");
                 let data;
                 if (contentType && contentType.indexOf("application/json") !== -1) {
                     data = await res.json();
                 } else {
-                    throw new Error('Server returned non-JSON error (Check logs)');
+                    throw new Error('Server returned non-JSON error');
                 }
 
                 if (data.success) {
@@ -192,13 +249,14 @@
                     alert('Chyba: ' + (data.error || 'Špatné heslo'));
                 }
             } catch (e) {
-                alert('Chyba komunikace se serverem. Zkontrolujte logy na Renderu. ' + e.message);
+                alert('Chyba komunikace se serverem: ' + e.message);
             }
         }
 
         function showTab(tab) {
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-            document.querySelector(`button[onclick="showTab('${tab}')"]`).classList.add('active');
+            const activeBtn = Array.from(document.querySelectorAll('.tab-btn')).find(b => b.textContent.toLowerCase().includes(tab === 'teachers' ? 'učitelé' : 'rezervace'));
+            if (activeBtn) activeBtn.classList.add('active');
 
             document.getElementById('tab-teachers').style.display = tab === 'teachers' ? 'block' : 'none';
             document.getElementById('tab-reservations').style.display = tab === 'reservations' ? 'block' : 'none';
@@ -211,41 +269,52 @@
             if (data.storageMode) {
                 const el = document.getElementById('storage-status');
                 el.textContent = data.storageMode;
-                if (data.storageMode.includes('Connected')) {
-                    el.style.color = 'green';
-                } else if (data.storageMode.includes('ERROR')) {
-                    el.style.color = 'red';
-                    el.style.fontWeight = 'bold';
-                }
+                el.style.color = data.storageMode.includes('Connected') ? 'green' : (data.storageMode.includes('ERROR') ? 'red' : '#555');
             }
             renderTeachers();
         }
 
         async function loadReservations() {
             const res = await fetch('/api/reservations');
-            const data = await res.json(); // { Teacher: { Time: {name, id} } }
+            const data = await res.json(); 
 
             const list = document.getElementById('reservations-list');
             list.innerHTML = '';
 
-            Object.keys(data).forEach(teacher => {
-                Object.keys(data[teacher]).forEach(time => {
-                    const r = data[teacher][time];
-                    if (r) {
+            // Grouping logic
+            const teacherNames = teachers.map(t => t.name);
+            teacherNames.forEach(teacher => {
+                const teacherReservations = data[teacher] || {};
+                const times = Object.keys(teacherReservations).sort();
+                
+                if (times.length > 0) {
+                    const group = document.createElement('div');
+                    group.className = 'res-group';
+                    group.innerHTML = `
+                        <div class="res-group-header" onclick="this.parentElement.classList.toggle('active')">
+                            <span>${teacher} (${times.length})</span>
+                            <span>↕</span>
+                        </div>
+                        <div class="res-group-content"></div>
+                    `;
+                    const content = group.querySelector('.res-group-content');
+                    
+                    times.forEach(time => {
+                        const r = teacherReservations[time];
                         const row = document.createElement('div');
                         row.className = 'res-item';
                         row.innerHTML = `
-                            <span style="font-weight:bold; width: 100px;">${teacher}</span>
-                            <span style="width: 60px;">${time}</span>
+                            <span style="width: 60px; font-weight:bold;">${time}</span>
                             <span>${r.name}</span>
-                            <button class="btn btn-red" onclick="deleteReservation('${teacher}', '${time}')">Smazat</button>
+                            <button class="btn btn-red" style="padding: 5px 10px; font-size:12px;" onclick="deleteReservation('${teacher}', '${time}')">Smazat</button>
                         `;
-                        list.appendChild(row);
-                    }
-                });
+                        content.appendChild(row);
+                    });
+                    list.appendChild(group);
+                }
             });
 
-            if (list.children.length === 0) list.innerHTML = '<p>Žádné aktivní rezervace.</p>';
+            if (list.children.length === 0) list.innerHTML = '<p style="text-align:center; padding:20px; color:#888;">Žádné aktivní rezervace.</p>';
         }
 
         async function deleteReservation(teacher, time) {
@@ -260,10 +329,29 @@
             if (res.ok) {
                 loadReservations();
             } else {
-                const err = await res.json();
-                alert('Chyba při mazání: ' + (err.error || 'Neznámá chyba'));
+                alert('Chyba při mazání.');
             }
         }
+
+        async function resetReservations() {
+            if (!confirm('VAROVÁNÍ: Tato akce vymaže VŠECHNY rezervace rodičů! Učitelé zůstanou zachováni. Pokračovat?')) return;
+            if (!confirm('OPRAVDU SMAZAT VŠECHNA DATA? Tuto akci nelze vrátit.')) return;
+
+            const res = await fetch('/api/admin/reset-all', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ token: sessionToken })
+            });
+
+            if (res.ok) {
+                alert('Všechny rezervace byly vymazány.');
+                loadReservations();
+            } else {
+                alert('Chyba při resetu.');
+            }
+        }
+
+        let dragPageIndex = null;
 
         function renderTeachers() {
             const list = document.getElementById('teachers-list');
@@ -271,15 +359,57 @@
             teachers.forEach((t, index) => {
                 const row = document.createElement('div');
                 row.className = 'teacher-item';
+                row.draggable = true;
+                row.dataset.index = index;
+                
                 row.innerHTML = `
-                    <div style="display:flex; flex-direction:column; gap:2px;">
+                    <div class="drag-handle">☰</div>
+                    <div style="display:flex; flex-direction:column; gap:2px; margin-right:5px;">
                         <button class="btn" style="padding:2px 5px; font-size:10px" onclick="moveTeacher(${index}, -1)" ${index === 0 ? 'disabled' : ''}>▲</button>
                         <button class="btn" style="padding:2px 5px; font-size:10px" onclick="moveTeacher(${index}, 1)" ${index === teachers.length - 1 ? 'disabled' : ''}>▼</button>
                     </div>
-                    <input type="text" placeholder="Jméno" value="${t.name}" maxlength="50" onchange="updateTeacher(${index}, 'name', this.value)">
+                    <input type="text" placeholder="Jméno" value="${t.name}" maxlength="50" style="flex:1" onchange="updateTeacher(${index}, 'name', this.value)">
                     <input type="number" placeholder="Minuty" value="${t.interval}" style="width: 70px" onchange="updateTeacher(${index}, 'interval', this.value)">
                     <button class="btn btn-red" onclick="removeTeacher(${index})">X</button>
                 `;
+
+                // Drag & Drop events
+                row.addEventListener('dragstart', (e) => {
+                    dragPageIndex = index;
+                    row.classList.add('dragging');
+                });
+
+                row.addEventListener('dragend', () => {
+                    row.classList.remove('dragging');
+                });
+
+                row.addEventListener('dragover', (e) => {
+                    e.preventDefault();
+                    const draggingItem = document.querySelector('.dragging');
+                    if (!draggingItem || draggingItem === row) return;
+                    
+                    const list = row.parentNode;
+                    const items = [...list.querySelectorAll('.teacher-item')];
+                    const nextItem = items.find(item => {
+                        const box = item.getBoundingClientRect();
+                        return e.clientY <= box.top + box.height / 2;
+                    });
+                    
+                    if (nextItem) {
+                        list.insertBefore(draggingItem, nextItem);
+                    } else {
+                        list.appendChild(draggingItem);
+                    }
+                });
+
+                row.addEventListener('drop', (e) => {
+                    e.preventDefault();
+                    const newItems = [...list.querySelectorAll('.teacher-item')];
+                    const newOrder = newItems.map(item => teachers[parseInt(item.dataset.index)]);
+                    teachers = newOrder;
+                    renderTeachers();
+                });
+
                 list.appendChild(row);
             });
         }
@@ -304,7 +434,7 @@
         }
 
         function removeTeacher(index) {
-            if (confirm('Opravdu smazat?')) {
+            if (confirm('Opravdu smazat učitele?')) {
                 teachers.splice(index, 1);
                 renderTeachers();
             }
