@@ -188,6 +188,29 @@ app.post('/api/admin/delete-reservation', async (req, res) => {
     }
 });
 
+app.post('/api/admin/reset-all', async (req, res) => {
+    const { token } = req.body;
+    if (token !== 'admin-session-ok') return res.status(401).json({ error: 'Unauthorized' });
+
+    try {
+        const data = await db.getData();
+        data.reservations = {};
+        
+        // Re-initialize empty buckets for existing teachers
+        if (data.settings && data.settings.teachers) {
+            data.settings.teachers.forEach(t => {
+                data.reservations[t.name] = {};
+            });
+        }
+
+        await db.saveData(data);
+        res.json({ success: true });
+    } catch (e) {
+        console.error('Reset all error:', e);
+        res.status(500).json({ error: 'Chyba při resetu: ' + e.message });
+    }
+});
+
 app.listen(PORT, () => {
     console.log(`Server running at http://localhost:${PORT}`);
 });
